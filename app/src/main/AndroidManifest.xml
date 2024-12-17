@@ -32,6 +32,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- RegistrationActivity -->
+        <activity android:name=".activities.RegistrationActivity" />
+
+        <!-- LoginActivity -->
+        <activity android:name=".activities.LoginActivity" />
     </application>
 
 </manifest>

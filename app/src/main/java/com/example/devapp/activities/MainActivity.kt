@@ -1,5 +1,6 @@
 package com.example.devapp.activities
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import androidx.activity.viewModels
@@ -28,17 +29,34 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val recyclerView = binding.recyclerViewMenu
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        val sharedPreferences = getSharedPreferences("USER_PREFS", MODE_PRIVATE)
+        val userToken = sharedPreferences.getString("USER_TOKEN", null)
 
-        viewModel.menuDishes.observe(this) { dishes ->
-            recyclerView.adapter = MenuAdapter(dishes)
+        if (userToken == null) {
+            // Если токен пользователя отсутствует, открываем форму для входа
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        } else {
+            // Иначе, отображаем меню
+            val recyclerView = binding.recyclerViewMenu
+            recyclerView.layoutManager = LinearLayoutManager(this)
+
+            viewModel.menuDishes.observe(this) { dishes ->
+                recyclerView.adapter = MenuAdapter(dishes)
+            }
+
+            viewModel.error.observe(this) { errorMessage ->
+                Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT).show()
+            }
+
+            viewModel.fetchMenu()
+
+            // Logout Button
+            binding.logoutButton.setOnClickListener {
+                sharedPreferences.edit().remove("USER_TOKEN").apply()
+                startActivity(Intent(this, LoginActivity::class.java))
+                finish()
+            }
         }
-
-        viewModel.error.observe(this) { errorMessage ->
-            Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT).show()
-        }
-
-        viewModel.fetchMenu()
     }
 }
