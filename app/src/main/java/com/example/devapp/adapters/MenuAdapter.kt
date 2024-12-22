@@ -3,44 +3,66 @@ package com.example.devapp.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.devapp.R
 import com.example.devapp.database.models.Menu
+import com.example.devapp.databinding.ItemMenuBinding
 
-class MenuAdapter(private var dishes: List<Menu>) :
-    RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
+class MenuAdapter(
+    private var menuList: List<Menu>,
+    private val onDishSelected: (Menu, Int) -> Unit
+) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
-    class MenuViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val dishName: TextView = view.findViewById(R.id.tvDishName)
-        val price: TextView = view.findViewById(R.id.tvPrice)
-        val description: TextView = view.findViewById(R.id.tvDescription)
-    }
-
-    fun setMenuList(newDishes: List<Menu>) {
-        dishes = newDishes
-        notifyDataSetChanged() // Уведомление о том, что данные обновлены
-    }
+    private val dishQuantities = mutableMapOf<Int, Int>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MenuViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.menu_item, parent, false)
-        return MenuViewHolder(view)
+        val binding = ItemMenuBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MenuViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: MenuViewHolder, position: Int) {
-        val dish = dishes[position]
-        holder.dishName.text = dish.namedish
-        holder.price.text = "Цена: ${dish.price} ₽"
-        holder.description.text = dish.description
+        val menu = menuList[position]
+        holder.bind(menu, position)
     }
 
-    override fun getItemCount(): Int {
-        return dishes.size
+    override fun getItemCount(): Int = menuList.size
+
+    fun setMenuList(dishes: List<Menu>) {
+        menuList = dishes
+        notifyDataSetChanged()
     }
 
-    fun updateMenuList(newDishes: List<Menu>) {
-        dishes = newDishes
-        notifyDataSetChanged() // Уведомление о том, что данные обновлены
+    inner class MenuViewHolder(private val binding: ItemMenuBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(menu: Menu, position: Int) {
+            binding.tvDishName.text = menu.namedish
+            binding.tvDishPrice.text = "${menu.price} ₽"
+
+            // Получаем количество из dishQuantities
+            val quantity = dishQuantities[menu.iddish] ?: 0
+            binding.tvDishQuantity.text = "Количество: $quantity"
+
+            // Кнопка + (увеличение количества)
+            binding.btnIncrease.setOnClickListener {
+                val newQuantity = quantity + 1
+                dishQuantities[menu.iddish] = newQuantity
+                binding.tvDishQuantity.text = "Количество: $newQuantity"
+                onDishSelected(menu, newQuantity) // Обновляем в Activity
+                notifyItemChanged(position) // Обновляем только этот элемент
+            }
+
+            // Кнопка - (уменьшение количества)
+            binding.btnDecrease.setOnClickListener {
+                if (quantity > 0) {
+                    val newQuantity = quantity - 1
+                    dishQuantities[menu.iddish] = newQuantity
+                    binding.tvDishQuantity.text = "Количество: $newQuantity"
+                    onDishSelected(menu, newQuantity) // Обновляем в Activity
+                    notifyItemChanged(position) // Обновляем только этот элемент
+                }
+            }
+        }
     }
 }
+

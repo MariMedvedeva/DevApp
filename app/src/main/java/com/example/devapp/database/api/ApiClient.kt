@@ -1,5 +1,8 @@
 package com.example.devapp.database.api
 
+import com.example.devapp.database.services.ApiService
+import com.example.devapp.database.services.CustomerApiService
+import com.example.devapp.database.services.MenuApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
@@ -25,5 +28,18 @@ object ApiClient {
 
     fun <T> createService(serviceClass: Class<T>): T {
         return retrofit.create(serviceClass)
+    }
+
+    fun createCustomerService(): CustomerApiService {
+        return createService(CustomerApiService::class.java)
+    }
+    // Создание экземпляра ApiService
+    val apiService: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
+    }
+
+    // Создание экземпляра MenuApiService
+    val menuApiService: MenuApiService by lazy {
+        retrofit.create(MenuApiService::class.java)
     }
 }

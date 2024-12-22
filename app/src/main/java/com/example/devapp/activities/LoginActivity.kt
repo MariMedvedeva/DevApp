@@ -35,13 +35,18 @@ class LoginActivity : AppCompatActivity() {
         btnRegister = findViewById(R.id.btnRegister)
 
         btnLogin.setOnClickListener {
-            val username = etUsername.text.toString()
-            val password = etPassword.text.toString()
+            try {
+                val username = etUsername.text.toString()
+                val password = etPassword.text.toString()
 
-            if (username.isNotEmpty() && password.isNotEmpty()) {
-                loginUser(username, password)
-            } else {
-                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                if (username.isNotEmpty() && password.isNotEmpty()) {
+                    loginUser(username, password)
+                } else {
+                    Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "An unexpected error occurred: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -56,12 +61,17 @@ class LoginActivity : AppCompatActivity() {
 
         userApi.login(user).enqueue(object : Callback<User> {
             override fun onResponse(call: Call<User>, response: Response<User>) {
-                if (response.isSuccessful) {
-                    val token = response.body()?.token
+                if (response.isSuccessful && response.body() != null) {
+                    val userToken = response.body()?.token
+                    val userId = response.body()?.id
 
-                    if (token != null) {
+                    if (userToken != null && userId != null) {
                         val sharedPreferences = getSharedPreferences("USER_PREFS", MODE_PRIVATE)
-                        sharedPreferences.edit().putString("USER_TOKEN", token).apply()
+                        sharedPreferences.edit()
+                            .putString("USER_TOKEN", userToken) // Сохраняем токен
+                            .putInt("USER_ID", userId) // Сохраняем ID пользователя
+                            .putString("USER_NAME", username) // Сохраняем имя пользователя
+                            .apply()
 
                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         finish()
@@ -69,7 +79,7 @@ class LoginActivity : AppCompatActivity() {
                         Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this@LoginActivity, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "Invalid credentials or server error", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -78,4 +88,5 @@ class LoginActivity : AppCompatActivity() {
             }
         })
     }
+
 }
