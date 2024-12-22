@@ -1,9 +1,11 @@
 package com.example.devapp.activities
 
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import androidx.activity.viewModels
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -33,7 +35,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: MenuViewModel by viewModels()
     private val selectedItems = mutableListOf<OrderItem>() // Для хранения выбранных позиций меню
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                         // Если блюда нет в списке, добавляем новый элемент
                         selectedItems.add(
                             OrderItem(
-                                orderid = 1, // Здесь может быть ID заказа, если он динамически меняется
+                                orderid = 1,
                                 dishid = selectedDish.iddish,
                                 quantity = quantity,
                                 price = selectedDish.price
@@ -95,7 +96,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             binding.menuButton.setOnClickListener {
-                //startActivity(Intent(this, MenuActivity::class.java))
                 val username = sharedPreferences.getString("USER_NAME", "Guest")
                 val userId = sharedPreferences.getInt("USER_ID", -1)
 
@@ -107,7 +107,6 @@ class MainActivity : AppCompatActivity() {
             }
 
             binding.orderButton.setOnClickListener {
-                //val intent = Intent(this, OrderActivity::class.java)
                 val username = sharedPreferences.getString("USER_NAME", "Guest")
                 val userId = sharedPreferences.getInt("USER_ID", -1)
 
@@ -117,7 +116,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 Log.d("MainActivity", "Открывается OrderActivity с USER_ID: $userId и USER_NAME: $username")
                 startActivity(intent)
-
             }
 
             binding.profileButton.setOnClickListener {
@@ -137,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchUserId(username: String) {
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.102:3000") // Замените на URL вашего сервера
+            .baseUrl("http://192.168.0.102:3000")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -154,15 +152,16 @@ class MainActivity : AppCompatActivity() {
                         val sharedPreferences = getSharedPreferences("USER_PREFS", MODE_PRIVATE)
                         sharedPreferences.edit().putInt("USER_ID", userId).apply()
 
-                        // Обновляем UI
+                        // Обновляем UI с userId
                         binding.tvUsername.text = "$username (ID: $userId)"
+
+                        // Теперь проверим, является ли этот пользователь администратором
+                        checkIfUserIsAdmin(userId)
                     } else {
-                        // Ошибка с пустым userId
                         binding.tvUsername.text = "$username (ID: неизвестно)"
                         Log.e("MainActivity", "User ID is null")
                     }
                 } else {
-                    // Ошибка в ответе
                     val errorMessage = response.errorBody()?.string() ?: "Неизвестная ошибка"
                     Log.e("MainActivity", "Error fetching user ID: $errorMessage")
                     binding.tvUsername.text = "$username (ID: неизвестно)"
@@ -170,10 +169,48 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<UserIdResponse>, t: Throwable) {
-                // Обработка ошибок сети
                 Log.e("MainActivity", "Error fetching user ID", t)
                 binding.tvUsername.text = "$username (ID: неизвестно)"
             }
         })
+    }
+
+    private fun checkIfUserIsAdmin(userId: Int) {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("http://192.168.0.102:3000")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val apiService = retrofit.create(ApiService::class.java)
+
+        apiService.isAdmin(userId).enqueue(object : Callback<Map<String, Boolean>> {
+            override fun onResponse(call: Call<Map<String, Boolean>>, response: Response<Map<String, Boolean>>) {
+                if (response.isSuccessful) {
+                    val isAdmin = response.body()?.get("isAdmin") ?: false
+                    val sharedPreferences = getSharedPreferences("USER_PREFS", MODE_PRIVATE)
+                    sharedPreferences.edit().putBoolean("IS_ADMIN", isAdmin).apply()
+
+                    if (isAdmin) {
+                        Log.d("MainActivity", "User is an admin")
+                        binding.tvUsername.text = "${binding.tvUsername.text} (Admin)"
+                        hideAdminButtons()
+                    } else {
+                        Log.d("MainActivity", "User is not an admin")
+                        // Обновляем UI, если пользователь не администратор
+                        binding.tvUsername.text = "${binding.tvUsername.text} (User)"
+                    }
+                } else {
+                    Log.e("MainActivity", "Error checking if user is admin")
+                }
+            }
+
+            override fun onFailure(call: Call<Map<String, Boolean>>, t: Throwable) {
+                Log.e("MainActivity", "Error checking if user is admin", t)
+            }
+        })
+    }
+
+    private fun hideAdminButtons() {
+        binding.menuButton.visibility = View.GONE
     }
 }

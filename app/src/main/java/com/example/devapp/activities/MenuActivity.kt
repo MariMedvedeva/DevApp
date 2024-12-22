@@ -13,6 +13,9 @@ import com.example.devapp.database.models.Order
 import com.example.devapp.database.models.OrderItem
 import com.example.devapp.databinding.ActivityMenuBinding
 import com.example.devapp.views.MenuViewModel
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class MenuActivity : AppCompatActivity() {
 
@@ -83,7 +86,8 @@ class MenuActivity : AppCompatActivity() {
                 val newOrder = Order(
                     clientid = userId, // ID клиента, полученный через Intent
                     statusid = 1, // Статус всегда 1
-                    orderdate = "2024-12-21", // Дата заказа
+                    orderdate = ZonedDateTime.now(ZoneId.of("Europe/Moscow")).format(
+                        DateTimeFormatter.ISO_LOCAL_DATE),
                     price = filteredItems.sumOf { it.price * it.quantity },
                     items = filteredItems
                 )
