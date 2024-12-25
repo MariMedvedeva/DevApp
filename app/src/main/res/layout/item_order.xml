@@ -4,7 +4,8 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:background="?android:attr/selectableItemBackground"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="8dp"
+    android:gravity="center"> <!-- Центрируем все элементы по горизонтали -->
 
     <TextView
         android:id="@+id/tvOrderId"
@@ -12,7 +13,8 @@
         android:layout_height="wrap_content"
         android:text="Клиент: "
         android:textSize="16sp"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/tvOrderDate"
@@ -20,7 +22,8 @@
         android:layout_height="wrap_content"
         android:text="Дата: "
         android:textSize="14sp"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/tvOrderPrice"
@@ -28,7 +31,8 @@
         android:layout_height="wrap_content"
         android:text="Стоимость: "
         android:textSize="14sp"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/tvOrderStatus"
@@ -36,19 +40,32 @@
         android:layout_height="wrap_content"
         android:text="Статус: "
         android:textSize="14sp"
-        android:textColor="@android:color/black" />
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Контейнер для кнопок -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="8dp">
 
     <!-- Кнопка для изменения статуса -->
     <Button
         android:id="@+id/btnChangeStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Изменить статус" />
+        android:text="Изменить статус"
+        android:layout_marginEnd="8dp" />
 
     <!-- Кнопка для отмены заказа -->
     <Button
         android:id="@+id/btnCancelOrder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Отменить заказ" />
+        android:text="Отменить" />
+
 </LinearLayout>
+
+    </LinearLayout>

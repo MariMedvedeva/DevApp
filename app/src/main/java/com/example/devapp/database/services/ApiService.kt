@@ -6,7 +6,9 @@ import com.example.devapp.database.models.OrderItem
 import com.example.devapp.database.models.OrderResponse
 import com.example.devapp.database.models.UserIdResponse
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -21,6 +23,9 @@ interface ApiService {
     @GET("api/user/isAdmin/{userId}")
     fun isAdmin(@Path("userId") userId: Int): Call<Map<String, Boolean>>
 
+    @GET("user/isAdmin/{userId}")
+    suspend fun isAdmins(@Path("userId") userId: Int): Boolean
+
     // Получить меню
     @GET("menu")
     suspend fun getMenu(): List<Menu>
@@ -28,6 +33,9 @@ interface ApiService {
     // Добавить блюдо в меню
     @POST("menu")
     suspend fun addDish(@Body dish: Menu): Menu
+
+    @DELETE("menu/{id}")
+    suspend fun deleteDish(@Path("id") dishId: Int): Response<Void>
 
     // Получить заказ
     @GET("api/orders/{id}")

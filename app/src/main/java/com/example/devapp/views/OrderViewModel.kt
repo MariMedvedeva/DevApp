@@ -22,7 +22,7 @@ class OrderViewModel : ViewModel() {
     val errorMessage: LiveData<String> get() = _errorMessage
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://192.168.0.102:3000/api/")
+        .baseUrl("http://192.168.0.103:3000/api/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 

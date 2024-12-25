@@ -40,6 +40,7 @@
         <activity android:name=".activities.MenuActivity" />
         <activity android:name=".activities.ProfileActivity" />
         <activity android:name=".activities.OrderActivity" />
+        <activity android:name=".activities.AddDishActivity" />
     </application>
 
 </manifest>

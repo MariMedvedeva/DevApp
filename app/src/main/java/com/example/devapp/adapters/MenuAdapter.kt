@@ -1,18 +1,25 @@
 package com.example.devapp.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.devapp.R
+import com.example.devapp.database.api.ApiClient
 import com.example.devapp.database.models.Menu
 import com.example.devapp.databinding.ItemMenuBinding
+import com.example.devapp.views.MenuViewModel
+import kotlinx.coroutines.launch
 
 class MenuAdapter(
     private var menuList: List<Menu>,
-    private val onDishSelected: (Menu, Int) -> Unit
+    private val onDishSelected: (Menu, Int) -> Unit,
+    private val isAdmin: Boolean,
+    private val menuViewModel: MenuViewModel
 ) : RecyclerView.Adapter<MenuAdapter.MenuViewHolder>() {
 
     private val dishQuantities = mutableMapOf<Int, Int>()
@@ -48,8 +55,8 @@ class MenuAdapter(
                 val newQuantity = quantity + 1
                 dishQuantities[menu.iddish] = newQuantity
                 binding.tvDishQuantity.text = "Количество: $newQuantity"
-                onDishSelected(menu, newQuantity) // Обновляем в Activity
-                notifyItemChanged(position) // Обновляем только этот элемент
+                onDishSelected(menu, newQuantity)
+                notifyItemChanged(position)
             }
 
             // Кнопка - (уменьшение количества)
@@ -58,11 +65,22 @@ class MenuAdapter(
                     val newQuantity = quantity - 1
                     dishQuantities[menu.iddish] = newQuantity
                     binding.tvDishQuantity.text = "Количество: $newQuantity"
-                    onDishSelected(menu, newQuantity) // Обновляем в Activity
-                    notifyItemChanged(position) // Обновляем только этот элемент
+                    onDishSelected(menu, newQuantity)
+                    notifyItemChanged(position)
                 }
+            }
+
+            // Кнопка удаления блюда (видна только для администраторов)
+            binding.btnDeleteDish.visibility = if (isAdmin) View.VISIBLE else View.GONE
+            binding.btnDeleteDish.visibility = if (isAdmin) View.VISIBLE else View.GONE
+
+
+            // Обработчик нажатия на кнопку удаления
+            binding.btnDeleteDish.setOnClickListener {
+                menuViewModel.deleteDish(menu.iddish)  // Call the delete function from the ViewModel
             }
         }
     }
+
 }
 

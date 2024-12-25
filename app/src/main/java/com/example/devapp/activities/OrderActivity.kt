@@ -29,7 +29,7 @@ class OrderActivity : AppCompatActivity() {
     private var isAdmin: Boolean = false
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://192.168.0.102:3000/")
+        .baseUrl("http://192.168.0.103:3000/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
@@ -46,7 +46,7 @@ class OrderActivity : AppCompatActivity() {
         userId = sharedPreferences.getInt("USER_ID", -1)
 
         // Отображаем username и userId в TextView
-        binding.tvUsername.text = "$username (ID: $userId)"
+        binding.tvUsername.text = "$username"
 
         if (userId != -1) {
             // Запрашиваем статус админа пользователя
@@ -73,7 +73,20 @@ class OrderActivity : AppCompatActivity() {
 
         // Наблюдаем за изменениями в списке заказов
         orderViewModel.orders.observe(this) { orders ->
-            adapter = OrderAdapter(orders, { orderId ->
+            // Сортируем заказы по статусу
+            val sortedOrders = orders.sortedBy { order ->
+                when (order.statusName) {
+                    "Принят" -> 1
+                    "В процессе" -> 2
+                    "В пути" -> 3
+                    "Доставлен" -> 4
+                    "Отменен" -> 5
+                    else -> 6 // Для непредсказуемых статусов
+                }
+            }
+
+            // Обновляем адаптер с отсортированными заказами
+            adapter = OrderAdapter(sortedOrders, { orderId ->
                 changeOrderStatus(orderId)
             }, { orderId ->
                 cancelOrder(orderId)
@@ -104,7 +117,16 @@ class OrderActivity : AppCompatActivity() {
 
                     // Обновляем адаптер с информацией о том, что пользователь админ
                     adapter = OrderAdapter(
-                        orders = orderViewModel.orders.value ?: emptyList(),
+                        orders = orderViewModel.orders.value?.sortedBy { order ->
+                            when (order.statusName) {
+                                "Принят" -> 1
+                                "В процессе" -> 2
+                                "В пути" -> 3
+                                "Доставлен" -> 4
+                                "Отменен" -> 5
+                                else -> 6 // Для непредсказуемых статусов
+                            }
+                        } ?: emptyList(),
                         onChangeStatus = { orderId -> changeOrderStatus(orderId) },
                         onCancelOrder = { orderId -> cancelOrder(orderId) },
                         isAdmin = isAdmin // Передаем флаг в адаптер
@@ -113,10 +135,10 @@ class OrderActivity : AppCompatActivity() {
 
                     // Обновляем интерфейс в зависимости от того, админ ли пользователь
                     if (isAdmin) {
-                        binding.tvUsername.text = "${binding.tvUsername.text} (Admin)"
+                        binding.tvUsername.text = "${binding.tvUsername.text}"
                         hideAdminButtons()
                     } else {
-                        binding.tvUsername.text = "${binding.tvUsername.text} (User)"
+                        binding.tvUsername.text = "${binding.tvUsername.text}"
                     }
                 } else {
                     Toast.makeText(this@OrderActivity, "Ошибка при получении статуса админа", Toast.LENGTH_SHORT).show()
@@ -174,7 +196,6 @@ class OrderActivity : AppCompatActivity() {
         })
     }
 
-
     // Функция для скрытия кнопок изменения статуса и отмены заказа
     private fun hideAdminButtons() {
         // Прячем кнопки изменения статуса и отмены заказа, если пользователь не админ
@@ -182,4 +203,3 @@ class OrderActivity : AppCompatActivity() {
         binding.recyclerView.findViewById<Button>(R.id.btnCancelOrder)?.visibility = View.GONE
     }
 }
-

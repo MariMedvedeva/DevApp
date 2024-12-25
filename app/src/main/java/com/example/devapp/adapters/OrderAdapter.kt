@@ -1,5 +1,6 @@
 package com.example.devapp.adapters
 
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,15 +34,28 @@ class OrderAdapter(
 
     override fun onBindViewHolder(holder: OrderViewHolder, position: Int) {
         val order = orders[position]
+
+        // Присваиваем данные в элементы
         holder.tvOrderId.text = "Клиент: ${order.clientName}"
         holder.tvOrderDate.text = "Дата: ${order.formattedOrderDate}"
         holder.tvOrderPrice.text = "Стоимость: ${order.price} руб."
         holder.tvOrderStatus.text = "Статус: ${order.statusName}"
+
+        // Если статус заказа красный (например, statusid = 1), устанавливаем красный цвет
+        if (order.statusName == "Отменен") {
+            holder.tvOrderStatus.setTextColor(Color.RED)
+        }
+
+        if (order.statusName == "Доставлен") {
+            holder.tvOrderStatus.setTextColor(Color.GREEN)
+        }
+
+        // Если не администратор, скрываем кнопки
         if (!isAdmin) {
             holder.btnChangeStatus.visibility = View.GONE
             holder.btnCancelOrder.visibility = View.GONE
         } else {
-            // Если пользователь администратор, показать кнопки и обработать клики
+            // Если администратор, показываем кнопки и обрабатываем их нажатие
             holder.btnChangeStatus.setOnClickListener {
                 onChangeStatus(order.idorder)  // Вызов функции для изменения статуса
             }
@@ -51,6 +65,7 @@ class OrderAdapter(
             }
         }
     }
+
 
     override fun getItemCount(): Int {
         return orders.size

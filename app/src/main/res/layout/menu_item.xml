@@ -28,4 +28,5 @@
         android:layout_height="wrap_content"
         android:text="Добавить"
         android:layout_gravity="end"/>
+
 </LinearLayout>

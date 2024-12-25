@@ -51,12 +51,16 @@ class MainActivity : AppCompatActivity() {
             finish()
         } else {
             // Иначе, отображаем меню
+            /*
             val recyclerView = binding.recyclerViewMenu
             recyclerView.layoutManager = LinearLayoutManager(this)
 
+             */
+            val isAdmin = sharedPreferences.getBoolean("IS_ADMIN", false) // По умолчанию false, если флаг не установлен
+/*
             // Получаем меню и отображаем его
             viewModel.menuDishes.observe(this) { dishes ->
-                recyclerView.adapter = MenuAdapter(dishes) { selectedDish, quantity ->
+                recyclerView.adapter = MenuAdapter(dishes, { selectedDish, quantity ->
                     // Логика для добавления или уменьшения количества блюда в заказе
                     val existingItem = selectedItems.find { it.dishid == selectedDish.iddish }
                     if (existingItem != null) {
@@ -74,8 +78,11 @@ class MainActivity : AppCompatActivity() {
                             )
                         )
                     }
-                }
+                }, isAdmin, viewModel) // Передаем isAdmin в адаптер
             }
+
+ */
+
 
             viewModel.error.observe(this) { errorMessage ->
                 Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_SHORT).show()
@@ -135,7 +142,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun fetchUserId(username: String) {
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.102:3000")
+            .baseUrl("http://192.168.0.103:3000")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -153,31 +160,31 @@ class MainActivity : AppCompatActivity() {
                         sharedPreferences.edit().putInt("USER_ID", userId).apply()
 
                         // Обновляем UI с userId
-                        binding.tvUsername.text = "$username (ID: $userId)"
+                        binding.tvUsername.text = "$username"
 
                         // Теперь проверим, является ли этот пользователь администратором
                         checkIfUserIsAdmin(userId)
                     } else {
-                        binding.tvUsername.text = "$username (ID: неизвестно)"
+                        binding.tvUsername.text = "$username"
                         Log.e("MainActivity", "User ID is null")
                     }
                 } else {
                     val errorMessage = response.errorBody()?.string() ?: "Неизвестная ошибка"
                     Log.e("MainActivity", "Error fetching user ID: $errorMessage")
-                    binding.tvUsername.text = "$username (ID: неизвестно)"
+                    binding.tvUsername.text = "$username"
                 }
             }
 
             override fun onFailure(call: Call<UserIdResponse>, t: Throwable) {
                 Log.e("MainActivity", "Error fetching user ID", t)
-                binding.tvUsername.text = "$username (ID: неизвестно)"
+                binding.tvUsername.text = "$username"
             }
         })
     }
 
     private fun checkIfUserIsAdmin(userId: Int) {
         val retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.0.102:3000")
+            .baseUrl("http://192.168.0.103:3000")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
@@ -192,12 +199,11 @@ class MainActivity : AppCompatActivity() {
 
                     if (isAdmin) {
                         Log.d("MainActivity", "User is an admin")
-                        binding.tvUsername.text = "${binding.tvUsername.text} (Admin)"
-                        hideAdminButtons()
+                        binding.tvUsername.text = "${binding.tvUsername.text}"
                     } else {
                         Log.d("MainActivity", "User is not an admin")
                         // Обновляем UI, если пользователь не администратор
-                        binding.tvUsername.text = "${binding.tvUsername.text} (User)"
+                        binding.tvUsername.text = "${binding.tvUsername.text}"
                     }
                 } else {
                     Log.e("MainActivity", "Error checking if user is admin")
@@ -210,7 +216,4 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun hideAdminButtons() {
-        binding.menuButton.visibility = View.GONE
-    }
 }
